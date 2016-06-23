@@ -19,16 +19,20 @@
       height: 18px;
       padding: 5px;
     }
-    
-    :host:hover {
-      background-color: yellow;
+
+    :host button{
+      border: none;
+      background-color: white;
     }
+
   </style>
   <template>
-    <input type="button" value="{{currentIcon}}" on-click="onClick">
-    <!-- note: using a icon here removes the selection - preventing highighting from working 
-    TODO: fix that
+    <button id="holder" on-click="onClick"></button>
+    <!-- note: 
+    using a icon here removes the selection - preventing highighting from working 
     <iron-icon on-click="onClick" icon="{{currentIcon}}"></iron-icon>
+
+    For now we are manually setting the icon into a button.
     -->
   </template>
 </dom-module>
@@ -36,33 +40,39 @@
   Polymer({
     is: 'corespring-highlight-button',
     properties: {
-      highlighter: {
-        type: Object,
-        observer: 'onSetHighlighter'
+      highlightSelector: {
+        type: String,
+        value: 'corespring-highlight-behavior'
       }
     },
-    onSetHighlighter: function(newValue, oldValue){
-      if(!this.highlighter){
-        return;
-      }
+    ready: function(){
+      this.meta = Polymer.Base.create('iron-meta', {type: 'iconset'});
 
-      this.highlighter.addEventListener('highlight-selected', function(){
-        this.hasSelection = true;
-        this.highlighted = true;
+      this.highlighter = document.querySelector(this.highlightSelector);
+        
+        if(!this.highlighter){
+          throw new Error('can not find a highlighter'); 
+        }
+
+        this.highlighter.addEventListener('highlight-selected', function(){
+          this.hasSelection = true;
+          this.highlighted = true;
+          this.updateIcon();
+        }.bind(this));
+            
+        this.highlighter.addEventListener('range-selected', function(){
+          this.hasSelection = true;
+          this.highlighted = false;
+          this.updateIcon();
+        }.bind(this));
+            
+        this.highlighter.addEventListener('no-range-selected', function(){
+          this.hasSelection = false;
+          this.highlighted = false;
+          this.updateIcon();
+        }.bind(this));
+
         this.updateIcon();
-      }.bind(this));
-          
-      this.highlighter.addEventListener('range-selected', function(){
-        this.hasSelection = true;
-        this.highlighted = false;
-        this.updateIcon();
-      }.bind(this));
-          
-      this.highlighter.addEventListener('no-range-selected', function(){
-        this.hasSelection = false;
-        this.highlighted = false;
-        this.updateIcon();
-      }.bind(this));
     },
     onClick: function(){
       if(this.hasSelection){ 
@@ -74,15 +84,18 @@
       } 
     },
     updateIcon: function(){
-      if(this.hasSelection){
-        if(this.highlighted){
-          this.set('currentIcon', 'icons:clear')
-        } else {
-          this.set('currentIcon', 'editor:mode-edit');
-        }
+      if(this.hasSelection && this.highlighted){
+        this._updateIcon('icons:clear');
       } else {
-        this.set('currentIcon', 'editor:mode-edit');
+        this._updateIcon('editor:mode-edit');
       }
+    },
+    _updateIcon: function(name){
+      var arr = name.split(':');
+      var iconName = arr.pop();
+      var iconSetName = arr.pop();
+      var iconset = this.meta.byKey(iconSetName);
+      iconset.applyIcon(this.$.holder, iconName);
     }
   });
 </script>
