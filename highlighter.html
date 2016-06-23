@@ -1,27 +1,98 @@
 <link rel="import" href="../polymer/polymer.html">
-<dom-module id="context-menu">
+<link rel="import" href="../iron-icons/editor-icons.html">
+<link rel="import" href="../iron-icons/iron-icons.html">
+<script type="text/javascript" src="../rangy/rangy-core.js"></script>
+<script type="text/javascript" src="../rangy/rangy-classapplier.js"></script>
+<script type="text/javascript" src="../rangy/rangy-highlighter.js"></script>
+
+<dom-module id="corespring-highlight-button">
+  <style>
+    :host {
+      width: 30px;
+      height: 30px;
+      display: inline-block;
+      border-radius: 14px;
+    }
+    
+    :host iron-icon {
+      width: 18px;
+      height: 18px;
+      padding: 5px;
+    }
+    
+    :host:hover {
+      background-color: yellow;
+    }
+  </style>
+  <template>
+    <input type="button" value="{{currentIcon}}" on-click="onClick">
+    <!-- note: using a icon here removes the selection - preventing highighting from working 
+    TODO: fix that
+    <iron-icon on-click="onClick" icon="{{currentIcon}}"></iron-icon>
+    -->
+  </template>
 </dom-module>
 <script>
   Polymer({
-    is: 'context-menu',
+    is: 'corespring-highlight-button',
     properties: {
-      contributors: {
-        type: Array
-        notify: true
-      },
-      target: {
-        type:String
+      highlighter: {
+        type: Object,
+        observer: 'onSetHighlighter'
+      }
+    },
+    onSetHighlighter: function(newValue, oldValue){
+      if(!this.highlighter){
+        return;
+      }
+
+      this.highlighter.addEventListener('highlight-selected', function(){
+        this.hasSelection = true;
+        this.highlighted = true;
+        this.updateIcon();
+      }.bind(this));
+          
+      this.highlighter.addEventListener('range-selected', function(){
+        this.hasSelection = true;
+        this.highlighted = false;
+        this.updateIcon();
+      }.bind(this));
+          
+      this.highlighter.addEventListener('no-range-selected', function(){
+        this.hasSelection = false;
+        this.highlighted = false;
+        this.updateIcon();
+      }.bind(this));
+    },
+    onClick: function(){
+      if(this.hasSelection){ 
+        if(this.highlighted){
+          this.highlighter.removeHighlight();
+        } else {
+          this.highlighter.highlight();
+        }
+      } 
+    },
+    updateIcon: function(){
+      if(this.hasSelection){
+        if(this.highlighted){
+          this.set('currentIcon', 'icons:clear')
+        } else {
+          this.set('currentIcon', 'editor:mode-edit');
+        }
+      } else {
+        this.set('currentIcon', 'editor:mode-edit');
       }
     }
   });
 </script>
 
-<dom-module id="corespring-highlighter">
+<dom-module id="corespring-highlight-behavior">
 </dom-module>
 <script>
 
   Polymer({
-    is: 'corespring-highlighter', 
+    is: 'corespring-highlight-behavior', 
     properties: {
       target: {
         type : String
@@ -30,6 +101,44 @@
         type: Boolean,
         value: true
       }
+    },
+    highlight: function() {
+      var sel = rangy.getSelection();
+      console.log('selection: ', sel);
+      this.highlighter.highlightSelection('highlight');
+    },
+    removeHighlight: function() {
+      this.highlighter.unhighlightSelection();
+    },
+    attached: function(){
+      rangy.init();
+      this.highlighter = rangy.createHighlighter();
+
+      this.applier = rangy.createClassApplier('highlight', {
+        ignoreWhiteSpace: true,
+        tagNames: ['*']
+      });
+
+      this.highlighter.addClassApplier(this.applier);
+
+      var node = document.querySelector(this.target);
+
+      if(!node){
+        throw new Error('can not find node: ' + this.target);
+      } 
+
+      node.addEventListener('mouseup', function(event){
+        if(this.applier.isAppliedToSelection()){
+          this.fire('highlight-selected');
+        } else {
+          var sel = rangy.getSelection();
+          if(sel.rangeCount > 0 && sel.nativeSelection.type === 'Range'){
+            this.fire('range-selected');
+          } else {
+            this.fire('no-range-selected');
+          }
+        }
+      }.bind(this));
     }
   })
 </script>

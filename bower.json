@@ -4,9 +4,10 @@
   "dependencies": {
     "polymer": "^1.5.0",
     "interact": "^1.2.6",
-    "iron-icons": "PolymerElements/iron-icons#^1.1.3"
+    "iron-icons": "PolymerElements/iron-icons#^1.1.3",
+    "rangy": "^1.3.0"
   },
-  "main" : [
+  "main": [
     "highlighter.html"
   ]
 }
