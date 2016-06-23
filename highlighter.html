@@ -1,0 +1,35 @@
+<link rel="import" href="../polymer/polymer.html">
+<dom-module id="context-menu">
+</dom-module>
+<script>
+  Polymer({
+    is: 'context-menu',
+    properties: {
+      contributors: {
+        type: Array
+        notify: true
+      },
+      target: {
+        type:String
+      }
+    }
+  });
+</script>
+
+<dom-module id="corespring-highlighter">
+</dom-module>
+<script>
+
+  Polymer({
+    is: 'corespring-highlighter', 
+    properties: {
+      target: {
+        type : String
+      },
+      contextMenu: {
+        type: Boolean,
+        value: true
+      }
+    }
+  })
+</script>

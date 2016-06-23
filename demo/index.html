@@ -1,0 +1,58 @@
+<!doctype html>
+
+<html>
+  <head>
+    <link rel="import" href="../highlighter.html">
+
+    <style>
+        #some-div{
+          background-color: #004499;
+          width: 300px;
+          height: 400px;
+        }
+    </style>
+
+    <script>
+
+      document.addEventListener('DOMContentLoaded', function(){
+
+          var highlighter = document.querySelector('corespring-highlighter');
+          var contextMenu = document.querySelector('context-menu');
+          contextMenu.contributors = [highlighter];
+          
+          highlighter.marks = [
+            {text: 'Curabitur'}
+          ];     
+
+          function logModel(){
+            var json = JSON.stringify(highlighter.marks, null, '  ');
+            document.querySelector('#info').value = json; 
+            setTimeout(logModel, 1000);
+          }
+
+          logModel();
+      });
+
+      window.renderContextMenu = function(node){
+        return '<div>hi</div>';
+
+        var hc = highlighter.contextMenu(node, window.getSelection());
+
+
+      }
+
+    </script>
+  </head>
+  <body>
+    <context-menu 
+      target="#some-div"></context-menu>
+
+    <corespring-highlighter target="#some-div"></corespring-highlighter>
+    
+    <div id="some-div">
+      Suspendisse sit amet ex luctus, mattis felis ut, euismod diam. Curabitur pharetra vulputate augue nec ullamcorper. Quisque hendrerit tincidunt tristique. Donec malesuada turpis lectus, sed cursus quam imperdiet maximus. Duis rutrum imperdiet vestibulum. Donec sem justo, vestibulum quis ante at, tincidunt interdum metus. Aenean quis maximus mi, sit amet molestie velit. Nunc et ipsum euismod, pretium ipsum quis, pretium mauris. Nunc accumsan vitae tellus nec mollis. Nulla vel egestas quam. Maecenas id ultrices lacus. Nunc nec mollis felis.
+    </div>
+
+    <textarea id="info"></textarea>
+  </body>
+</html>
